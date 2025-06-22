@@ -33,6 +33,20 @@ export class AppComponent implements OnInit, OnDestroy {
     if (isPlatformBrowser(this.platformId)) {
       this.isIframe = window !== window.parent && !window.opener;
       
+      // Handle redirect response for non-iframe scenarios
+      if (!this.isIframe) {
+        this.msalService.handleRedirectObservable().subscribe({
+          next: (result) => {
+            if (result) {
+              console.log('Redirect login successful', result);
+              this.setLoginDisplay();
+              this.getAccessToken();
+            }
+          },
+          error: (error) => console.error('Redirect login failed', error)
+        });
+      }
+      
       // Initialize login display
       this.setLoginDisplay();
       
@@ -65,9 +79,12 @@ export class AppComponent implements OnInit, OnDestroy {
   login() {
     this.authService.login().subscribe({
       next: (result) => {
-        console.log('Login successful', result);
-        this.setLoginDisplay();
-        this.getAccessToken();
+        if (result) {
+          console.log('Login successful', result);
+          this.setLoginDisplay();
+          this.getAccessToken();
+        }
+        // For redirect, result will be null and we'll handle success in handleRedirectObservable
       },
       error: (error) => console.error('Login failed', error)
     });
