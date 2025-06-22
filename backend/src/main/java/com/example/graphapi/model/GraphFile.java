@@ -1,17 +1,29 @@
-
 package com.example.graphapi.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(description = "Represents a file from Microsoft OneDrive")
 public class GraphFile {
+
+    @Schema(description = "Unique identifier of the file", example = "01BYE5RZ6QN3ZWBTUFOFD3GSPGOHDJD36K")
     private String id;
+
+    @Schema(description = "Name of the file", example = "document.pdf")
     private String name;
+
+    @Schema(description = "Web URL to access the file", example = "https://onedrive.live.com/...")
     private String webUrl;
-    private long size;
+
+    @Schema(description = "Size of the file in bytes", example = "1048576")
+    private Long size;
+
+    @Schema(description = "File creation date and time", example = "2023-01-01T12:00:00Z")
     private String createdDateTime;
+
+    @Schema(description = "Last modified date and time", example = "2023-01-02T14:30:00Z")
     private String lastModifiedDateTime;
-    
-    @JsonProperty("@microsoft.graph.downloadUrl")
+
+    @Schema(description = "Direct download URL for the file")
     private String downloadUrl;
 
     // Constructors
