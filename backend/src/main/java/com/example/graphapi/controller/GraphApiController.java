@@ -47,43 +47,6 @@ public class GraphApiController {
     }
 
     @Operation(
-        summary = "Validate Azure AD Token",
-        description = "Validates an Azure AD access token and returns user information"
-    )
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Token is valid",
-                    content = @Content(mediaType = "application/json")),
-        @ApiResponse(responseCode = "401", description = "Invalid token",
-                    content = @Content(mediaType = "application/json")),
-        @ApiResponse(responseCode = "500", description = "Internal server error",
-                    content = @Content(mediaType = "application/json"))
-    })
-    @PostMapping("/validate-token")
-    public ResponseEntity<Map<String, Object>> validateToken(
-            @Parameter(description = "Request containing Azure AD access token", required = true)
-            @RequestBody AuthRequest authRequest) {
-        Map<String, Object> response = new HashMap<>();
-
-        try {
-            boolean isValid = graphApiService.validateToken(authRequest.getAccessToken());
-            response.put("valid", isValid);
-
-            if (isValid) {
-                JsonNode userInfo = graphApiService.getUserInfo(authRequest.getAccessToken());
-                response.put("userInfo", userInfo);
-                return ResponseEntity.ok(response);
-            } else {
-                response.put("message", "Invalid access token");
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-            }
-        } catch (Exception e) {
-            response.put("valid", false);
-            response.put("error", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-        }
-    }
-
-    @Operation(
         summary = "Get User Info",
         description = "Retrieves user information from Microsoft Graph using a test token"
     )
@@ -118,6 +81,43 @@ public class GraphApiController {
     }
 
     @Operation(
+        summary = "Validate Azure AD Token",
+        description = "Validates an Azure AD access token and returns user information"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Token is valid",
+                    content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "401", description = "Invalid token",
+                    content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "500", description = "Internal server error",
+                    content = @Content(mediaType = "application/json"))
+    })
+    @PostMapping("/validate-token")
+    public ResponseEntity<Map<String, Object>> validateToken(
+            @Parameter(description = "Request containing Azure AD access token", required = true)
+            @RequestBody AuthRequest authRequest) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            boolean isValid = graphApiService.validateToken(authRequest.getAccessToken());
+            response.put("valid", isValid);
+            
+            if (isValid) {
+                // If token is valid, also get user info
+                JsonNode userInfo = graphApiService.getUserInfo(authRequest.getAccessToken());
+                response.put("userInfo", userInfo);
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("error", "Invalid access token");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            }
+        } catch (Exception e) {
+            response.put("error", "Token validation failed: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    @Operation(
         summary = "Get OneDrive Files",
         description = "Retrieves all files from the user's OneDrive root directory"
     )
@@ -147,14 +147,14 @@ public class GraphApiController {
             response.put("count", files.size());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            response.put("error", e.getMessage());
+            response.put("error", "Failed to retrieve files: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 
     @Operation(
         summary = "Get Recent OneDrive Files",
-        description = "Retrieves recently accessed files from Microsoft Graph"
+        description = "Retrieves recent files from the user's OneDrive"
     )
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Recent files retrieved successfully",
@@ -168,7 +168,7 @@ public class GraphApiController {
     public ResponseEntity<Map<String, Object>> getRecentFiles(
             @Parameter(description = "Request containing Azure AD access token", required = true)
             @RequestBody AuthRequest authRequest,
-            @Parameter(description = "Maximum number of files to retrieve (default: 10)")
+            @Parameter(description = "Number of recent files to retrieve (default: 10)")
             @RequestParam(defaultValue = "10") int limit) {
         Map<String, Object> response = new HashMap<>();
 
@@ -185,7 +185,7 @@ public class GraphApiController {
             response.put("limit", limit);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            response.put("error", e.getMessage());
+            response.put("error", "Failed to retrieve recent files: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
