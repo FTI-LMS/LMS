@@ -9,8 +9,12 @@ channel = "stable-24_05"
 localPort = 4200
 externalPort = 80
 
+[[ports]]
+localPort = 5000
+externalPort = 5000
+
 [workflows]
-runButton = "Development Server"
+runButton = "Spring Boot Backend"
 
 [[workflows.workflow]]
 name = "Development Server"
