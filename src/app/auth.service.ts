@@ -55,4 +55,46 @@ export class AuthService {
   isLoggedIn(): boolean {
     return this.msalService.instance.getActiveAccount() != null;
   }
+
+  // Method to send access token to Spring Boot backend
+  validateTokenWithBackend(accessToken: string): Observable<any> {
+    const url = 'http://localhost:5000/api/graph/validate-token';
+    const body = { accessToken: accessToken };
+    
+    return from(fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body)
+    }).then(response => response.json()));
+  }
+
+  // Method to get files from backend
+  getFilesFromBackend(accessToken: string): Observable<any> {
+    const url = 'http://localhost:5000/api/graph/files';
+    const body = { accessToken: accessToken };
+    
+    return from(fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body)
+    }).then(response => response.json()));
+  }
+
+  // Method to get recent files from backend
+  getRecentFilesFromBackend(accessToken: string, limit: number = 10): Observable<any> {
+    const url = `http://localhost:5000/api/graph/files/recent?limit=${limit}`;
+    const body = { accessToken: accessToken };
+    
+    return from(fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body)
+    }).then(response => response.json()));
+  }
 }

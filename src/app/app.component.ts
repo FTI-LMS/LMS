@@ -20,6 +20,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private readonly _destroying$ = new Subject<void>();
   accessToken: string | null = null;
   userInfo: any = null;
+  files: any[] = [];
 
   constructor(
     private broadcastService: MsalBroadcastService,
@@ -101,9 +102,52 @@ export class AppComponent implements OnInit, OnDestroy {
       next: (result) => {
         this.accessToken = result.accessToken;
         console.log('Access token:', this.accessToken);
+        
+        // Validate token with backend and get files
+        this.validateTokenAndGetFiles();
       },
       error: (error) => console.error('Failed to get access token', error)
     });
+  }
+
+  validateTokenAndGetFiles() {
+    if (this.accessToken) {
+      // Validate token with Spring Boot backend
+      this.authService.validateTokenWithBackend(this.accessToken).subscribe({
+        next: (response) => {
+          console.log('Token validation response:', response);
+          if (response.valid) {
+            // Get files from backend
+            this.getFilesFromBackend();
+          }
+        },
+        error: (error) => console.error('Token validation failed:', error)
+      });
+    }
+  }
+
+  getFilesFromBackend() {
+    if (this.accessToken) {
+      this.authService.getFilesFromBackend(this.accessToken).subscribe({
+        next: (response) => {
+          console.log('Files from backend:', response);
+          this.files = response.files || [];
+        },
+        error: (error) => console.error('Failed to get files from backend:', error)
+      });
+    }
+  }
+
+  getRecentFiles() {
+    if (this.accessToken) {
+      this.authService.getRecentFilesFromBackend(this.accessToken, 5).subscribe({
+        next: (response) => {
+          console.log('Recent files from backend:', response);
+          this.files = response.files || [];
+        },
+        error: (error) => console.error('Failed to get recent files from backend:', error)
+      });
+    }
   }
 
   ngOnDestroy(): void {

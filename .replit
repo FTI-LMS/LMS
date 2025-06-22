@@ -30,6 +30,15 @@ mode = "sequential"
 task = "shell.exec"
 args = "npm run start"
 
+[[workflows.workflow]]
+name = "Spring Boot Backend"
+author = 43938894
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd backend && mvn spring-boot:run"
+
 [deployment]
 run = ["sh", "-c", "npm run serve:ssr:my-angular-project"]
 build = ["sh", "-c", "npm run build"]
