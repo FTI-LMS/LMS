@@ -19,7 +19,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/graph")
-@CrossOrigin(origins = "*", allowedHeaders = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS})
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class GraphApiController {
 
     private final GraphApiService graphApiService;
@@ -161,5 +161,39 @@ public class GraphApiController {
         response.put("timestamp", java.time.Instant.now().toString());
         response.put("service", "Microsoft Graph API Backend");
         return ResponseEntity.ok(response);
+    }
+
+    @Operation(
+        summary = "Get User Info",
+        description = "Retrieves user information from Microsoft Graph using a test token"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "User info retrieved successfully",
+                    content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "401", description = "Invalid token",
+                    content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "500", description = "Internal server error",
+                    content = @Content(mediaType = "application/json"))
+    })
+    @GetMapping("/user-info")
+    public ResponseEntity<Map<String, Object>> getUserInfo() {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // This is a test endpoint - in production you'd get the token from the request
+            String testToken = "test_token"; // This will fail but shows the endpoint structure
+            JsonNode userInfo = graphApiService.getUserInfo(testToken);
+            
+            if (userInfo != null) {
+                response.put("userInfo", userInfo);
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("error", "Failed to retrieve user info");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            }
+        } catch (Exception e) {
+            response.put("error", "Test endpoint - requires valid Microsoft Graph token: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
     }
 }
