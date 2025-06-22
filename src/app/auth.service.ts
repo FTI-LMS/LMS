@@ -12,15 +12,9 @@ import { loginRequest } from './auth.config';
 export class AuthService {
   constructor(private msalService: MsalService) {}
 
-  login(): Observable<AuthenticationResult> {
-    // Ensure MSAL is initialized before attempting login
-    return from(
-      this.msalService.instance.initialize().then(() => 
-        this.msalService.loginPopup(loginRequest)
-      )
-    ).pipe(
-      switchMap((result) => from(result))
-    );
+  login(): void {
+    // Use redirect instead of popup
+    this.msalService.loginRedirect(loginRequest);
   }
 
   logout(): void {
@@ -32,21 +26,15 @@ export class AuthService {
   }
 
   getAccessToken(): Observable<AuthenticationResult> {
-    return from(
-      this.msalService.instance.initialize().then(() => {
-        const account = this.getActiveAccount();
-        if (account) {
-          const accessTokenRequest = {
-            scopes: ['User.Read'],
-            account: account
-          };
-          return this.msalService.acquireTokenSilent(accessTokenRequest);
-        }
-        throw new Error('No active account');
-      })
-    ).pipe(
-      switchMap((result) => from(result))
-    );
+    const account = this.getActiveAccount();
+    if (account) {
+      const accessTokenRequest = {
+        scopes: ['User.Read'],
+        account: account
+      };
+      return this.msalService.acquireTokenSilent(accessTokenRequest);
+    }
+    throw new Error('No active account');
   }
 
   isLoggedIn(): boolean {
