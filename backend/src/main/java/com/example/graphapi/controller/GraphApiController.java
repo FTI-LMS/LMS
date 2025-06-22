@@ -145,4 +145,21 @@ public class GraphApiController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+
+    @Operation(
+        summary = "Health Check",
+        description = "Simple health check endpoint to verify the API is running"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Service is healthy",
+                    content = @Content(mediaType = "application/json"))
+    })
+    @GetMapping("/health")
+    public ResponseEntity<Map<String, Object>> health() {
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "UP");
+        response.put("timestamp", java.time.Instant.now().toString());
+        response.put("service", "Microsoft Graph API Backend");
+        return ResponseEntity.ok(response);
+    }
 }
