@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { MsalService } from '@azure/msal-angular';
 import { AuthenticationResult } from '@azure/msal-browser';
 import { Observable, from } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { loginRequest } from './auth.config';
 
 @Injectable({
@@ -14,9 +15,11 @@ export class AuthService {
   login(): Observable<AuthenticationResult> {
     // Ensure MSAL is initialized before attempting login
     return from(
-      this.msalService.instance.initialize().then(() => {
-        return this.msalService.loginPopup(loginRequest);
-      })
+      this.msalService.instance.initialize().then(() => 
+        this.msalService.loginPopup(loginRequest)
+      )
+    ).pipe(
+      switchMap((result) => from(result))
     );
   }
 
@@ -41,6 +44,8 @@ export class AuthService {
         }
         throw new Error('No active account');
       })
+    ).pipe(
+      switchMap((result) => from(result))
     );
   }
 

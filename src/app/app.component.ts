@@ -1,6 +1,6 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Subject, takeUntil } from 'rxjs';
 import { MsalService, MsalBroadcastService } from '@azure/msal-angular';
 import { EventMessage, EventType, InteractionStatus } from '@azure/msal-browser';
@@ -24,12 +24,13 @@ export class AppComponent implements OnInit, OnDestroy {
   constructor(
     private broadcastService: MsalBroadcastService,
     private msalService: MsalService,
-    private authService: AuthService
+    private authService: AuthService,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
   ngOnInit(): void {
     // Check if running in browser (not SSR)
-    if (typeof window !== 'undefined') {
+    if (isPlatformBrowser(this.platformId)) {
       this.isIframe = window !== window.parent && !window.opener;
       
       this.broadcastService.inProgress$
