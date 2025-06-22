@@ -12,9 +12,21 @@ import { loginRequest } from './auth.config';
 export class AuthService {
   constructor(private msalService: MsalService) {}
 
-  login(): Observable<AuthenticationResult> {
-    // Use popup authentication since redirects don't work in iframes
-    return this.msalService.loginPopup(loginRequest);
+  login(): Observable<AuthenticationResult | null> {
+    // Check if we're in an iframe
+    const isIframe = window !== window.parent && !window.opener;
+    
+    if (isIframe) {
+      // Use popup for iframes
+      return this.msalService.loginPopup(loginRequest);
+    } else {
+      // Use redirect for standalone windows
+      this.msalService.loginRedirect(loginRequest);
+      return new Observable(observer => {
+        observer.next(null);
+        observer.complete();
+      });
+    }
   }
 
   logout(): void {
@@ -34,7 +46,9 @@ export class AuthService {
       };
       return this.msalService.acquireTokenSilent(accessTokenRequest);
     } else {
-      throw new Error('No active account');
+      return new Observable(observer => {
+        observer.error(new Error('No active account'));
+      });
     }
   }
 

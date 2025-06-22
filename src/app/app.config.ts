@@ -23,14 +23,14 @@ export function MSALInstanceFactory() {
 
 export function MSALGuardConfigFactory() {
   return {
-    interactionType: InteractionType.Popup,
+    interactionType: InteractionType.Redirect,
     authRequest: loginRequest
   };
 }
 
 export function MSALInterceptorConfigFactory() {
   return {
-    interactionType: InteractionType.Popup,
+    interactionType: InteractionType.Redirect,
     protectedResourceMap: new Map([
       ['https://graph.microsoft.com/v1.0/me', ['user.read']]
     ])
