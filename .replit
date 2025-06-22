@@ -29,3 +29,7 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm run start"
+
+[deployment]
+run = ["sh", "-c", "npm run serve:ssr:my-angular-project"]
+build = ["sh", "-c", "npm run build"]
