@@ -5,7 +5,7 @@ export const msalConfig: Configuration = {
   auth: {
     clientId: '60bcec07-ec66-42ed-862a-ce63428fd386', // Replace with your Azure AD app registration client ID
     authority: 'https://login.microsoftonline.com/3d2555d9-f56b-466e-bebc-f354c0bdd9b4', // Replace with your tenant ID
-    redirectUri: window?.location?.origin || 'http://localhost:4200' // Use current origin
+    redirectUri: 'http://localhost:4200' // Adjust for your deployment URL
   },
   cache: {
     cacheLocation: 'localStorage',
