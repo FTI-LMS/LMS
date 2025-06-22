@@ -28,15 +28,18 @@ export class AppComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.isIframe = window !== window.parent && !window.opener;
-    
-    this.broadcastService.inProgress$
-      .pipe(takeUntil(this._destroying$))
-      .subscribe((status: InteractionStatus) => {
-        if (status === InteractionStatus.None) {
-          this.setLoginDisplay();
-        }
-      });
+    // Check if running in browser (not SSR)
+    if (typeof window !== 'undefined') {
+      this.isIframe = window !== window.parent && !window.opener;
+      
+      this.broadcastService.inProgress$
+        .pipe(takeUntil(this._destroying$))
+        .subscribe((status: InteractionStatus) => {
+          if (status === InteractionStatus.None) {
+            this.setLoginDisplay();
+          }
+        });
+    }
 
     this.broadcastService.msalSubject$
       .pipe(takeUntil(this._destroying$))

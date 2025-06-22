@@ -18,3 +18,12 @@ export const loginRequest = {
 };
 
 export const msalInstance = new PublicClientApplication(msalConfig);
+
+// Initialize MSAL instance
+msalInstance.initialize().then(() => {
+  // Handle the result of initialize
+  const activeAccount = msalInstance.getActiveAccount();
+  if (!activeAccount && msalInstance.getAllAccounts().length > 0) {
+    msalInstance.setActiveAccount(msalInstance.getAllAccounts()[0]);
+  }
+});

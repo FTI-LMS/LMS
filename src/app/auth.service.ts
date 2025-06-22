@@ -12,7 +12,12 @@ export class AuthService {
   constructor(private msalService: MsalService) {}
 
   login(): Observable<AuthenticationResult> {
-    return from(this.msalService.loginPopup(loginRequest));
+    // Ensure MSAL is initialized before attempting login
+    return from(
+      this.msalService.instance.initialize().then(() => {
+        return this.msalService.loginPopup(loginRequest);
+      })
+    );
   }
 
   logout(): void {
@@ -24,15 +29,19 @@ export class AuthService {
   }
 
   getAccessToken(): Observable<AuthenticationResult> {
-    const account = this.getActiveAccount();
-    if (account) {
-      const accessTokenRequest = {
-        scopes: ['User.Read'],
-        account: account
-      };
-      return from(this.msalService.acquireTokenSilent(accessTokenRequest));
-    }
-    throw new Error('No active account');
+    return from(
+      this.msalService.instance.initialize().then(() => {
+        const account = this.getActiveAccount();
+        if (account) {
+          const accessTokenRequest = {
+            scopes: ['User.Read'],
+            account: account
+          };
+          return this.msalService.acquireTokenSilent(accessTokenRequest);
+        }
+        throw new Error('No active account');
+      })
+    );
   }
 
   isLoggedIn(): boolean {
