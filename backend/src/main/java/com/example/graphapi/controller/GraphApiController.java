@@ -19,7 +19,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/graph")
-@CrossOrigin(origins = {"http://localhost:4200", "https://*.replit.dev", "https://*.replit.co"})
+@CrossOrigin(originPatterns = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS})
 public class GraphApiController {
 
     private final GraphApiService graphApiService;

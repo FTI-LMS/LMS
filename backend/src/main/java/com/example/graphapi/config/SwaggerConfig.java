@@ -27,8 +27,8 @@ public class SwaggerConfig {
                                 .name("API Support")
                                 .email("support@example.com")))
                 .servers(List.of(
-                        new Server().url("http://localhost:5000").description("Local server"),
-                        new Server().url("https://your-repl-name.replit.dev").description("Replit server")))
+                        new Server().url("http://0.0.0.0:5000").description("Local server"),
+                        new Server().url("https://" + System.getenv("REPL_SLUG") + "." + System.getenv("REPL_OWNER") + ".replit.dev").description("Replit server")))
                 .components(new Components()
                         .addSecuritySchemes("bearerAuth", new SecurityScheme()
                                 .type(SecurityScheme.Type.HTTP)
