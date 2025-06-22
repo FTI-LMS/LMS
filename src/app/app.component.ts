@@ -33,8 +33,17 @@ export class AppComponent implements OnInit, OnDestroy {
     if (isPlatformBrowser(this.platformId)) {
       this.isIframe = window !== window.parent && !window.opener;
       
-      // Initialize login display
-      this.setLoginDisplay();
+      // Handle redirect response
+      this.msalService.handleRedirectObservable().subscribe({
+        next: (result) => {
+          if (result) {
+            console.log('Redirect login successful', result);
+            this.setLoginDisplay();
+            this.getAccessToken();
+          }
+        },
+        error: (error) => console.error('Redirect login failed', error)
+      });
       
       this.broadcastService.inProgress$
         .pipe(takeUntil(this._destroying$))
@@ -63,14 +72,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   login() {
-    this.authService.login().subscribe({
-      next: (result) => {
-        console.log('Login successful', result);
-        this.setLoginDisplay();
-        this.getAccessToken();
-      },
-      error: (error) => console.error('Login failed', error)
-    });
+    this.authService.login();
   }
 
   logout() {

@@ -12,9 +12,9 @@ import { loginRequest } from './auth.config';
 export class AuthService {
   constructor(private msalService: MsalService) {}
 
-  login(): Observable<AuthenticationResult> {
-    // Use popup authentication since redirects don't work in iframes
-    return this.msalService.loginPopup(loginRequest);
+  login(): void {
+    // Use redirect instead of popup
+    this.msalService.loginRedirect(loginRequest);
   }
 
   logout(): void {
@@ -33,9 +33,8 @@ export class AuthService {
         account: account
       };
       return this.msalService.acquireTokenSilent(accessTokenRequest);
-    } else {
-      throw new Error('No active account');
     }
+    throw new Error('No active account');
   }
 
   isLoggedIn(): boolean {
