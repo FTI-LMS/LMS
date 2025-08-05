@@ -25,16 +25,6 @@ public class SwaggerConfig {
                         .version("1.0.0")
                         .contact(new Contact()
                                 .name("API Support")
-                                .email("support@example.com")))
-                .servers(List.of(
-                        new Server().url("http://0.0.0.0:5000").description("Local server"),
-                        new Server().url("https://bea2b7db-a438-4448-b0f9-f4595543bdf1-00-1mb1qkkjyqd0i.pike.replit.dev").description("Replit server")))
-                .components(new Components()
-                        .addSecuritySchemes("bearerAuth", new SecurityScheme()
-                                .type(SecurityScheme.Type.HTTP)
-                                .scheme("bearer")
-                                .bearerFormat("JWT")
-                                .description("Azure AD Access Token")))
-                .addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
+                                .email("support@example.com")));
     }
 }

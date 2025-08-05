@@ -1,8 +1,10 @@
 
 package com.example.graphapi.controller;
 
+import com.example.graphapi.entity.VideoFile;
 import com.example.graphapi.model.AuthRequest;
 import com.example.graphapi.model.GraphFile;
+import com.example.graphapi.repository.VideoFileRepository;
 import com.example.graphapi.service.GraphApiService;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,8 +27,11 @@ public class GraphApiController {
 
     private final GraphApiService graphApiService;
 
-    public GraphApiController(GraphApiService graphApiService) {
+    private final VideoFileRepository repository;
+
+    public GraphApiController(GraphApiService graphApiService, VideoFileRepository repository) {
         this.graphApiService = graphApiService;
+      this.repository = repository;
     }
 
     @Operation(
@@ -61,12 +66,12 @@ public class GraphApiController {
     @GetMapping("/user-info")
     public ResponseEntity<Map<String, Object>> getUserInfo() {
         Map<String, Object> response = new HashMap<>();
-        
+
         try {
             // This is a test endpoint - in production you'd get the token from the request
             String testToken = "test_token"; // This will fail but shows the endpoint structure
             JsonNode userInfo = graphApiService.getUserInfo(testToken);
-            
+
             if (userInfo != null) {
                 response.put("userInfo", userInfo);
                 return ResponseEntity.ok(response);
@@ -101,7 +106,7 @@ public class GraphApiController {
         try {
             boolean isValid = graphApiService.validateToken(authRequest.getAccessToken());
             response.put("valid", isValid);
-            
+
             if (isValid) {
                 // If token is valid, also get user info
                 JsonNode userInfo = graphApiService.getUserInfo(authRequest.getAccessToken());
@@ -189,4 +194,53 @@ public class GraphApiController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
-}
+
+    @Operation(
+            summary = "Get Drive Item Children",
+            description = "Retrieves children of a specific drive item using drive ID and item ID"
+        )
+        @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Drive item children retrieved successfully",
+                        content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "401", description = "Invalid token",
+                        content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "500", description = "Internal server error",
+                        content = @Content(mediaType = "application/json"))
+        })
+        @PostMapping("/drives/{driveId}/items/{itemId}/children")
+        public ResponseEntity<Map<String, Object>> getDriveItemChildren(
+                @Parameter(description = "Drive ID", required = true, example = "b!h-u0gl1vu0mtETS610zX9hufYTIu9hZJjUnn3YdGkBYfslJiWknLTrSquiV92Sgm")
+                @PathVariable String driveId,
+                @Parameter(description = "Item ID", required = true, example = "015ZUXCKADVIAVTQVOGRCKAQ2IRZAYGZJ7")
+                @PathVariable String itemId,
+                @Parameter(description = "Request containing Azure AD access token", required = true)
+                @RequestBody AuthRequest authRequest) {
+            Map<String, Object> response = new HashMap<>();
+
+            try {
+                // First validate the token
+                if (!graphApiService.validateToken(authRequest.getAccessToken())) {
+                    response.put("error", "Invalid access token");
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+                }
+
+                List<GraphFile> files = graphApiService.getDriveItemChildren(authRequest.getAccessToken(), driveId, itemId);
+              for (GraphFile file : files) {
+                VideoFile videoFile = new VideoFile();
+                videoFile.setFileName(file.getName());
+                videoFile.setFilePath(file.getDownloadUrl());
+                repository.save(videoFile);
+                }
+
+                response.put("files", files);
+                response.put("count", files.size());
+                response.put("driveId", driveId);
+                response.put("itemId", itemId);
+                return ResponseEntity.ok(response);
+            } catch (Exception e) {
+                response.put("error", "Failed to retrieve drive item children: " + e.getMessage());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            }
+        }
+
+ }
