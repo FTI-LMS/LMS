@@ -5,11 +5,12 @@ import { Subject, takeUntil } from 'rxjs';
 import { MsalService, MsalBroadcastService } from '@azure/msal-angular';
 import { EventMessage, EventType, InteractionStatus } from '@azure/msal-browser';
 import { AuthService } from './auth.service';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, CommonModule],
+  imports: [RouterOutlet, CommonModule, FormsModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
@@ -21,6 +22,16 @@ export class AppComponent implements OnInit, OnDestroy {
   accessToken: string | null = null;
   userInfo: any = null;
   files: any[] = [];
+  driveFiles: any[] = [];
+  driveId: string = 'b!h-u0gl1vu0mtETS610zX9hufYTIu9hZJjUnn3YdGkBYfslJiWknLTrSquiV92Sgm';
+  itemId: string = '015ZUXCKF5VF3V734C3JG3SQ4RE5RHPGBY';
+  loading = false;
+  showDriveConfig = false;
+  categorizedDocuments: any = null;
+  showCategories = false;
+  videoAnalysisResults: any = null;
+  showVideoAnalysis = false;
+  analyzingVideo = false;
 
   constructor(
     private broadcastService: MsalBroadcastService,
@@ -33,7 +44,7 @@ export class AppComponent implements OnInit, OnDestroy {
     // Check if running in browser (not SSR)
     if (isPlatformBrowser(this.platformId)) {
       this.isIframe = window !== window.parent && !window.opener;
-      
+
       // Handle redirect response for non-iframe scenarios
       if (!this.isIframe) {
         this.msalService.handleRedirectObservable().subscribe({
@@ -47,10 +58,10 @@ export class AppComponent implements OnInit, OnDestroy {
           error: (error) => console.error('Redirect login failed', error)
         });
       }
-      
+
       // Initialize login display
       this.setLoginDisplay();
-      
+
       this.broadcastService.inProgress$
         .pipe(takeUntil(this._destroying$))
         .subscribe((status: InteractionStatus) => {
@@ -102,7 +113,7 @@ export class AppComponent implements OnInit, OnDestroy {
       next: (result) => {
         this.accessToken = result.accessToken;
         console.log('Access token:', this.accessToken);
-        
+
         // Validate token with backend and get files
         this.validateTokenAndGetFiles();
       },
@@ -140,14 +151,112 @@ export class AppComponent implements OnInit, OnDestroy {
 
   getRecentFiles() {
     if (this.accessToken) {
-      this.authService.getRecentFilesFromBackend(this.accessToken, 5).subscribe({
+      this.loading = true;
+      this.authService.getRecentFilesFromBackend(this.accessToken, 10).subscribe({
         next: (response) => {
-          console.log('Recent files from backend:', response);
-          this.files = response.files || [];
+          console.log('Recent files response:', response);
+          if (response.files) {
+            this.files = response.files;
+          }
+          this.loading = false;
         },
-        error: (error) => console.error('Failed to get recent files from backend:', error)
+        error: (error) => {
+          console.error('Error fetching recent files:', error);
+          this.loading = false;
+        }
       });
     }
+  }
+
+  getDriveItemChildren(): void {
+    this.showDriveConfig = true;
+    if (this.accessToken && isPlatformBrowser(this.platformId)) {
+      this.authService.getDriveItemChildrenFromBackend(this.accessToken, this.driveId, this.itemId).subscribe({
+        next: (response) => {
+          console.log('Drive item children response:', response);
+          if (response && response.files) {
+            this.driveFiles = response.files;
+            console.log('Drive item children loaded:', this.driveFiles);
+          }
+        },
+        error: (error) => {
+          console.error('Error getting drive item children:', error);
+        }
+      });
+    } else {
+      console.log('No access token available or not in browser');
+    }
+  }
+
+  categorizeDocuments(): void {
+    if (this.accessToken && isPlatformBrowser(this.platformId)) {
+      this.loading = true;
+      this.authService.categorizeDriveItems(this.accessToken, this.driveId, this.itemId).subscribe({
+        next: (response) => {
+          console.log('Categorization response:', response);
+          this.categorizedDocuments = response;
+          this.showCategories = true;
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('Error categorizing documents:', error);
+          this.loading = false;
+        }
+      });
+    }
+  }
+
+  getCategoryKeys(): string[] {
+    return this.categorizedDocuments?.categories ? Object.keys(this.categorizedDocuments.categories) : [];
+  }
+
+  toggleCategoriesView(): void {
+    this.showCategories = !this.showCategories;
+  }
+
+  analyzeVideos(): void {
+    if (this.accessToken && isPlatformBrowser(this.platformId)) {
+      this.analyzingVideo = true;
+      this.authService.analyzeDriveVideos(this.accessToken, this.driveId, this.itemId).subscribe({
+        next: (response) => {
+          console.log('Video analysis response:', response);
+          this.videoAnalysisResults = response;
+          this.showVideoAnalysis = true;
+          this.analyzingVideo = false;
+        },
+        error: (error) => {
+          console.error('Error analyzing videos:', error);
+          this.analyzingVideo = false;
+        }
+      });
+    }
+  }
+
+  analyzeSpecificVideo(videoUrl: string): void {
+    if (videoUrl && isPlatformBrowser(this.platformId)) {
+      this.analyzingVideo = true;
+      this.authService.analyzeVideo(videoUrl).subscribe({
+        next: (response) => {
+          console.log('Single video analysis response:', response);
+          this.videoAnalysisResults = response;
+          this.showVideoAnalysis = true;
+          this.analyzingVideo = false;
+        },
+        error: (error) => {
+          console.error('Error analyzing video:', error);
+          this.analyzingVideo = false;
+        }
+      });
+    }
+  }
+
+  toggleVideoAnalysisView(): void {
+    this.showVideoAnalysis = !this.showVideoAnalysis;
+  }
+
+  isVideoFile(fileName: string): boolean {
+    const videoExtensions = ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm', '.mkv'];
+    return videoExtensions.some(ext => fileName.toLowerCase().endsWith(ext));
   }
 
   ngOnDestroy(): void {

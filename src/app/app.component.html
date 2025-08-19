@@ -157,48 +157,385 @@
 </style>
 
 <main>
-  <div class="content">
-    <div class="auth-section">
-      <h1>Microsoft Azure AD Authentication</h1>
-
-      <div *ngIf="!loginDisplay; else loggedIn">
-        <p>Please sign in with your Microsoft accoun</p>
-        <button (click)="login()">Sign In with Microsoft</button>
+  <div class="app-container">
+    <header class="app-header">
+      <div class="header-content">
+        <h1 class="app-title">Microsoft Graph API Dashboard</h1>
+        <p class="app-subtitle">Secure access to your OneDrive files and data</p>
       </div>
+    </header>
 
-      <ng-template #loggedIn>
-        <div class="user-info">
-          <h3>Welcome, {{userInfo?.name}}!</h3>
-          <p><strong>Email:</strong> {{userInfo?.username}}</p>
-          <p><strong>User ID:</strong> {{userInfo?.localAccountId}}</p>
+    <main class="main-content">
+      <div class="content-wrapper">
+        <div class="auth-card" *ngIf="!loginDisplay; else loggedIn">
+          <div class="auth-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+              <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+              <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h2>Welcome to Graph API Dashboard</h2>
+          <p class="auth-description">Connect your Microsoft account to access your OneDrive files, recent documents, and manage your data securely.</p>
+          <button class="btn btn-primary btn-large" (click)="login()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9 12L11 14L15 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M21 12C21 16.418 17.418 20 13 20H9C4.582 20 1 16.418 1 12C1 7.582 4.582 4 9 4H13C17.418 4 21 7.582 21 12Z" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            Sign In with Microsoft
+          </button>
         </div>
 
-        <div *ngIf="accessToken" class="token-info">
-          <h4>Access Token (first 100 characters):</h4>
-          <code>{{accessToken.substring(0, 100)}}...</code>
-          <br><br>
-          <small>Full token available in browser console</small>
-        </div>
+        <ng-template #loggedIn>
+          <div class="dashboard">
+            <div class="user-welcome-card">
+              <div class="user-avatar">
+                <div class="avatar-placeholder">
+                  {{userInfo?.name?.charAt(0) || 'U'}}
+                </div>
+              </div>
+              <div class="user-details">
+                <h2>Welcome back, {{userInfo?.name}}!</h2>
+                <p class="user-email">{{userInfo?.username}}</p>
+                <div class="user-status">
+                  <span class="status-indicator"></span>
+                  Connected to Microsoft Graph
+                </div>
+              </div>
+              <div class="user-actions">
+                <button class="btn btn-secondary" (click)="getAccessToken()">Refresh Token</button>
+                <button class="btn btn-danger" (click)="logout()">Sign Out</button>
+              </div>
+            </div>
 
-        <button (click)="getAccessToken()">Get Fresh Access Token</button>
-        <button (click)="getFilesFromBackend()">Get All Files</button>
-        <button (click)="getRecentFiles()">Get Recent Files</button>
-        <button class="logout-btn" (click)="logout()">Sign Out</button>
+            <div class="actions-grid">
+              <div class="action-card" (click)="getFilesFromBackend()">
+                <div class="action-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M13 2H6A2 2 0 004 4V20A2 2 0 006 22H18A2 2 0 0020 20V9L13 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M13 2V9H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+                <h3>All Files</h3>
+                <p>Browse all files in your OneDrive</p>
+              </div>
 
-        <div *ngIf="files.length > 0" class="files-section">
-          <h4>Files from Microsoft Graph API:</h4>
-          <div class="files-list">
-            <div *ngFor="let file of files" class="file-item">
-              <h5>{{file.name}}</h5>
-              <p><strong>Size:</strong> {{file.size | number}} bytes</p>
-              <p><strong>Created:</strong> {{file.createdDateTime | date}}</p>
-              <p><strong>Modified:</strong> {{file.lastModifiedDateTime | date}}</p>
-              <a *ngIf="file.webUrl" [href]="file.webUrl" target="_blank">Open File</a>
+              <div class="action-card" (click)="getRecentFiles()">
+                <div class="action-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                    <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </div>
+                <h3>Recent Files</h3>
+                <p>View your recently accessed documents</p>
+              </div>
+
+              <div class="action-card" (click)="getDriveItemChildren()">
+                <div class="action-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M22 19A2 2 0 0120 21H4A2 2 0 012 19V5A2 2 0 014 3H9L11 6H20A2 2 0 0122 8V19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+                <h3>Drive Explorer</h3>
+                <p>Explore specific drives and folders</p>
+              </div>
+            </div>
+
+            <div class="drive-config-card" *ngIf="showDriveConfig">
+              <h3>Drive Configuration</h3>
+              <div class="config-form">
+                <div class="form-group">
+                  <label for="driveId">Drive ID</label>
+                  <input id="driveId" type="text" [(ngModel)]="driveId" placeholder="Enter Drive ID" class="form-input">
+                </div>
+                <div class="form-group">
+                  <label for="itemId">Item ID</label>
+                  <input id="itemId" type="text" [(ngModel)]="itemId" placeholder="Enter Item ID" class="form-input">
+                </div>
+              </div>
+            </div>
+
+            <button (click)="getDriveItemChildren()" class="btn btn-primary">
+          Get Drive Item Children
+        </button>
+
+        <button (click)="categorizeDocuments()" class="btn btn-secondary" [disabled]="loading">
+          {{ loading ? 'Categorizing...' : 'Categorize Documents' }}
+        </button>
+
+        <button (click)="toggleCategoriesView()" class="btn btn-info" *ngIf="categorizedDocuments">
+          {{ showCategories ? 'Hide Categories' : 'Show Categories' }}
+        </button>
+
+        <button (click)="analyzeVideos()" class="btn btn-success" [disabled]="analyzingVideo">
+          {{ analyzingVideo ? 'Analyzing Videos...' : 'Analyze Videos with AI' }}
+        </button>
+
+        <button (click)="toggleVideoAnalysisView()" class="btn btn-warning" *ngIf="videoAnalysisResults">
+          {{ showVideoAnalysis ? 'Hide Video Analysis' : 'Show Video Analysis' }}
+        </button>
+
+            <div class="files-section" *ngIf="files.length > 0 || driveFiles.length > 0">
+              <div class="section-header">
+                <h3>{{driveFiles.length > 0 ? 'Drive Item Children' : 'Files'}}</h3>
+                <span class="file-count">{{(driveFiles.length > 0 ? driveFiles : files).length}} files</span>
+              </div>
+
+              <div class="files-grid">
+                <div *ngFor="let file of (driveFiles.length > 0 ? driveFiles : files)" class="file-card">
+                  <div class="file-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M13 2H6A2 2 0 004 4V20A2 2 0 006 22H18A2 2 0 0020 20V9L13 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M13 2V9H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </div>
+                  <div class="file-details">
+                    <h4 class="file-name">{{file.name}}</h4>
+                    <div class="file-meta">
+                      <span class="file-size">{{file.size | number}} bytes</span>
+                      <span class="file-date">{{file.lastModifiedDateTime | date:'short'}}</span>
+                    </div>
+                    <a *ngIf="file.webUrl" [href]="file.webUrl" target="_blank" class="file-link">
+                      Open in OneDrive
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 13V19A2 2 0 0116 21H5A2 2 0 013 19V8A2 2 0 015 6H11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M15 3H21V9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M10 14L21 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </a>
+                    <button *ngIf="isVideoFile(file.name)" (click)="analyzeSpecificVideo(file.webUrl)" 
+                            class="btn btn-sm btn-success" [disabled]="analyzingVideo">
+                      Analyze Video
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Video Analysis Results -->
+            <div class="video-analysis-results" *ngIf="showVideoAnalysis && videoAnalysisResults">
+              <h3>Video Analysis Results</h3>
+              
+              <!-- Single Video Analysis -->
+              <div *ngIf="videoAnalysisResults.fileName" class="single-video-analysis">
+                <div class="video-summary-table">
+                  <table class="analysis-table">
+                    <thead>
+                      <tr>
+                        <th>Property</th>
+                        <th>Value</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><strong>File Name</strong></td>
+                        <td>{{videoAnalysisResults.fileName}}</td>
+                      </tr>
+                      <tr>
+                        <td><strong>Duration</strong></td>
+                        <td>{{videoAnalysisResults.duration}}</td>
+                      </tr>
+                      <tr>
+                        <td><strong>Relevant Topic</strong></td>
+                        <td>
+                          <span class="topic-badge">{{videoAnalysisResults.relevantTopic}}</span>
+                          <span class="topic-confidence">({{videoAnalysisResults.topicConfidence | number:'1.2-2'}} confidence)</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td><strong>Total Frames Analyzed</strong></td>
+                        <td>{{videoAnalysisResults.totalFramesAnalyzed}}</td>
+                      </tr>
+                      <tr>
+                        <td><strong>Frame Rate</strong></td>
+                        <td>{{videoAnalysisResults.frameRate | number:'1.1-1'}} fps</td>
+                      </tr>
+                      <tr>
+                        <td><strong>Average Confidence</strong></td>
+                        <td>{{videoAnalysisResults.confidence | number:'1.2-2'}}</td>
+                      </tr>
+                      <tr>
+                        <td><strong>Detected Objects</strong></td>
+                        <td>
+                          <div class="object-tags" *ngIf="videoAnalysisResults.detectedObjects?.length > 0">
+                            <span class="object-tag" *ngFor="let object of videoAnalysisResults.detectedObjects">{{object}}</span>
+                          </div>
+                          <span *ngIf="!videoAnalysisResults.detectedObjects?.length">No objects detected</span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Multiple Videos Analysis -->
+              <div *ngIf="videoAnalysisResults.videoAnalysisResults" class="multiple-videos-analysis">
+                <div class="analysis-summary-header">
+                  <h4>Analysis Summary</h4>
+                  <p><strong>Total Videos Analyzed:</strong> {{videoAnalysisResults.totalVideosFound}}</p>
+                  <p>{{videoAnalysisResults.message}}</p>
+                </div>
+
+                <div class="videos-table-container">
+                  <table class="videos-analysis-table">
+                    <thead>
+                      <tr>
+                        <th>Video Name</th>
+                        <th>Duration</th>
+                        <th>Relevant Topic</th>
+                        <th>Confidence</th>
+                        <th>Frames Analyzed</th>
+                        <th>Frame Rate</th>
+                        <th>Detected Objects</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let video of videoAnalysisResults.videoAnalysisResults" 
+                          [class.error-row]="video.error">
+                        <td class="video-name">
+                          <div class="file-icon-small">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M14.5 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V8.5L14.5 4z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                              <path d="M14 4v6h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                              <path d="M10 15l-3-3 3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                          </div>
+                          {{video.fileName}}
+                        </td>
+                        <td *ngIf="!video.error">{{video.duration || 'N/A'}}</td>
+                        <td *ngIf="video.error" colspan="7" class="error-cell">
+                          <span class="error-message">{{video.error}}</span>
+                        </td>
+                        <td *ngIf="!video.error">
+                          <span class="topic-badge" *ngIf="video.relevantTopic">{{video.relevantTopic}}</span>
+                          <span *ngIf="!video.relevantTopic">N/A</span>
+                        </td>
+                        <td *ngIf="!video.error">
+                          <span class="confidence-score">{{video.confidence | number:'1.2-2'}}</span>
+                        </td>
+                        <td *ngIf="!video.error">{{video.totalFramesAnalyzed || 0}}</td>
+                        <td *ngIf="!video.error">{{video.frameRate | number:'1.1-1'}} fps</td>
+                        <td *ngIf="!video.error">
+                          <div class="objects-cell">
+                            <span class="object-count" *ngIf="video.detectedObjects?.length > 0">
+                              {{video.detectedObjects.length}} objects
+                            </span>
+                            <div class="object-tags-small" *ngIf="video.detectedObjects?.length > 0">
+                              <span class="object-tag-small" *ngFor="let object of video.detectedObjects.slice(0, 3)">
+                                {{object}}
+                              </span>
+                              <span *ngIf="video.detectedObjects.length > 3" class="more-objects">
+                                +{{video.detectedObjects.length - 3}} more
+                              </span>
+                            </div>
+                            <span *ngIf="!video.detectedObjects?.length">None</span>
+                          </div>
+                        </td>
+                        <td *ngIf="!video.error">
+                          <span class="status-success">✓ Analyzed</span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Frame Analysis Details (Collapsible) -->
+              <div class="frame-analysis-section" *ngIf="videoAnalysisResults.frameAnalysis?.length > 0">
+                <details class="frame-analysis-details">
+                  <summary>Frame-by-Frame Analysis ({{videoAnalysisResults.frameAnalysis.length}} frames)</summary>
+                  <div class="frame-analysis-table">
+                    <table class="frames-table">
+                      <thead>
+                        <tr>
+                          <th>Frame #</th>
+                          <th>Timestamp</th>
+                          <th>Top Predictions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let frame of videoAnalysisResults.frameAnalysis">
+                          <td>{{frame.frameNumber}}</td>
+                          <td>{{frame.timestamp || (frame.frameNumber * 1000)}}ms</td>
+                          <td>
+                            <div class="predictions-cell" *ngIf="frame.predictions">
+                              <div class="prediction-item" *ngFor="let pred of frame.predictions.slice(0, 3)">
+                                <span class="prediction-class">{{pred.className}}</span>
+                                <span class="prediction-confidence">({{pred.confidence | number:'1.2-2'}})</span>
+                              </div>
+                            </div>
+                            <span *ngIf="!frame.predictions">No predictions</span>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </details>
+              </div>
+            </div>
+
+            <div class="drive-files" *ngIf="driveFiles.length > 0 && !showCategories && !showVideoAnalysis">
+          <h3>Drive Item Children:</h3>
+          <div class="file-list">
+            <div class="file-item" *ngFor="let file of driveFiles">
+              <div class="file-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M13 2H6A2 2 0 004 4V20A2 2 0 006 22H18A2 2 0 0020 20V9L13 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M13 2V9H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div class="file-details">
+                <h4 class="file-name">{{file.name}}</h4>
+                <p class="file-info">Size: {{file.size}} bytes</p>
+                <p class="file-info">Modified: {{file.lastModifiedDateTime | date}}</p>
+              </div>
             </div>
           </div>
         </div>
-      </ng-template>
-    </div>
+
+        <div class="categorized-documents" *ngIf="categorizedDocuments && showCategories">
+          <h3>Categorized Documents ({{categorizedDocuments.totalFiles}} total files)</h3>
+
+          <div class="categories-container">
+            <div class="category-section" *ngFor="let category of getCategoryKeys()">
+              <div class="category-header">
+                <h4>{{category}} ({{categorizedDocuments.categories[category].count}} files)</h4>
+              </div>
+
+              <div class="category-files">
+                <div class="file-item" *ngFor="let file of categorizedDocuments.categories[category].files">
+                  <div class="file-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M13 2H6A2 2 0 004 4V20A2 2 0 006 22H18A2 2 0 0020 20V9L13 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M13 2V9H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </div>
+                  <div class="file-details">
+                    <h5 class="file-name">{{file.name}}</h5>
+                    <p class="file-info">Size: {{file.size}} bytes</p>
+                    <p class="file-info">Modified: {{file.lastModifiedDateTime | date}}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+            <div *ngIf="accessToken" class="token-section">
+              <details class="token-details">
+                <summary>Access Token Information</summary>
+                <div class="token-content">
+                  <code>{{accessToken.substring(0, 100)}}...</code>
+                  <small>Full token available in browser console</small>
+                </div>
+              </details>
+            </div>
+          </div>
+        </ng-template>
+      </div>
+    </main>
   </div>
 </main>
 

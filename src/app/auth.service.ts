@@ -58,7 +58,7 @@ export class AuthService {
 
   // Method to send access token to Spring Boot backend
   validateTokenWithBackend(accessToken: string): Observable<any> {
-    const url = 'https://bea2b7db-a438-4448-b0f9-f4595543bdf1-00-1mb1qkkjyqd0i.pike.replit.dev/api/graph/validate-token';
+    const url = 'http://localhost:5000/api/graph/validate-token';
     const body = { accessToken: accessToken };
     
     return from(fetch(url, {
@@ -72,7 +72,7 @@ export class AuthService {
 
   // Method to get files from backend
   getFilesFromBackend(accessToken: string): Observable<any> {
-    const url = 'https://bea2b7db-a438-4448-b0f9-f4595543bdf1-00-1mb1qkkjyqd0i.pike.replit.dev/api/graph/files';
+    const url = 'http://localhost:5000/api/graph/files';
     const body = { accessToken: accessToken };
     
     return from(fetch(url, {
@@ -86,8 +86,86 @@ export class AuthService {
 
   // Method to get recent files from backend
   getRecentFilesFromBackend(accessToken: string, limit: number = 10): Observable<any> {
-    const url = `https://bea2b7db-a438-4448-b0f9-f4595543bdf1-00-1mb1qkkjyqd0i.pike.replit.dev/api/graph/files/recent?limit=${limit}`;
+    const url = `http://localhost:5000/api/graph/files/recent?limit=${limit}`;
     const body = { accessToken: accessToken };
+    
+    return from(fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body)
+    }).then(response => response.json()));
+  }
+
+  // Method to get drive item children from backend
+  getDriveItemChildrenFromBackend(accessToken: string, driveId: string, itemId: string): Observable<any> {
+    const url = `http://localhost:5000/api/graph/drives/${driveId}/items/${itemId}/children`;
+    const body = { accessToken: accessToken };
+    
+    return from(fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body)
+    }).then(response => response.json()));
+  }
+
+  // Method to categorize documents
+  categorizeDocuments(documentsJson: string): Observable<any> {
+    const url = 'http://localhost:5000/api/categorization/categorize';
+    const body = { documentsJson: documentsJson };
+    
+    return from(fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body)
+    }).then(response => response.json()));
+  }
+
+  // Method to categorize drive items directly
+  categorizeDriveItems(accessToken: string, driveId: string, itemId: string): Observable<any> {
+    const url = 'http://localhost:5000/api/categorization/categorize-drive-items';
+    const body = { 
+      accessToken: accessToken,
+      driveId: driveId,
+      itemId: itemId
+    };
+    
+    return from(fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body)
+    }).then(response => response.json()));
+  }
+
+  // Method to analyze a single video
+  analyzeVideo(videoUrl: string): Observable<any> {
+    const url = 'http://localhost:5000/api/video-analysis/analyze-video';
+    const body = { videoUrl: videoUrl };
+    
+    return from(fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body)
+    }).then(response => response.json()));
+  }
+
+  // Method to analyze videos from drive
+  analyzeDriveVideos(accessToken: string, driveId: string, itemId: string): Observable<any> {
+    const url = 'http://localhost:5000/api/video-analysis/analyze-drive-videos';
+    const body = { 
+      accessToken: accessToken,
+      driveId: driveId,
+      itemId: itemId
+    };
     
     return from(fetch(url, {
       method: 'POST',

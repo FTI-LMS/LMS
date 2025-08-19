@@ -3,8 +3,8 @@ import { Configuration, PublicClientApplication } from '@azure/msal-browser';
 
 export const msalConfig: Configuration = {
   auth: {
-    clientId: '60bcec07-ec66-42ed-862a-ce63428fd386', // Replace with your Azure AD app registration client ID
-    authority: 'https://login.microsoftonline.com/3d2555d9-f56b-466e-bebc-f354c0bdd9b4', // Replace with your tenant ID
+    clientId: '62189f96-20ec-42b7-8fff-bceafe77afd5', // Replace with your Azure AD app registration client ID
+    authority: 'https://login.microsoftonline.com/73bffe2b-9041-4754-aaf0-3ef61cde7559', // Replace with your tenant ID
     redirectUri: (typeof window !== 'undefined' && window?.location?.origin) || 'http://localhost:4200' // Use current origin
   },
   cache: {
@@ -14,7 +14,7 @@ export const msalConfig: Configuration = {
 };
 
 export const loginRequest = {
-  scopes: ['openid', 'profile', 'User.Read']
+  scopes: ['openid', 'profile', 'User.Read','Files.Read.All']
 };
 
 export const msalInstance = new PublicClientApplication(msalConfig);
