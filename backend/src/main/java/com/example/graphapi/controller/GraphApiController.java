@@ -1,9 +1,11 @@
 
 package com.example.graphapi.controller;
 
+import com.example.graphapi.entity.CategorayDetails;
 import com.example.graphapi.entity.VideoFile;
 import com.example.graphapi.model.AuthRequest;
 import com.example.graphapi.model.GraphFile;
+import com.example.graphapi.repository.CategoryDetailsRepository;
 import com.example.graphapi.repository.VideoFileRepository;
 import com.example.graphapi.service.GraphApiService;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -12,10 +14,14 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import org.nd4j.shade.j2objc.annotations.AutoreleasePool;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,11 +33,13 @@ public class GraphApiController {
 
     private final GraphApiService graphApiService;
 
-    private final VideoFileRepository repository;
+    @Autowired
+    private  CategoryDetailsRepository categoryDetailsRepository;
+    @Autowired
+    private  VideoFileRepository repository;
 
-    public GraphApiController(GraphApiService graphApiService, VideoFileRepository repository) {
+    public GraphApiController(GraphApiService graphApiService) {
         this.graphApiService = graphApiService;
-      this.repository = repository;
     }
 
     @Operation(
@@ -211,7 +219,7 @@ public class GraphApiController {
         public ResponseEntity<Map<String, Object>> getDriveItemChildren(
                 @Parameter(description = "Drive ID", required = true, example = "b!h-u0gl1vu0mtETS610zX9hufYTIu9hZJjUnn3YdGkBYfslJiWknLTrSquiV92Sgm")
                 @PathVariable String driveId,
-                @Parameter(description = "Item ID", required = true, example = "015ZUXCKADVIAVTQVOGRCKAQ2IRZAYGZJ7")
+                @Parameter(description = "Item ID", required = true, example = "015ZUXCKD3HEDKB5ZQHFF2CAMHKFSS7WBU")
                 @PathVariable String itemId,
                 @Parameter(description = "Request containing Azure AD access token", required = true)
                 @RequestBody AuthRequest authRequest) {
@@ -224,13 +232,23 @@ public class GraphApiController {
                     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
                 }
 
-                List<GraphFile> files = graphApiService.getDriveItemChildren(authRequest.getAccessToken(), driveId, itemId);
+                List<GraphFile> files = graphApiService.getDriveItemChildren(authRequest.getAccessToken(), driveId, "015ZUXCKD3HEDKB5ZQHFF2CAMHKFSS7WBU");
               for (GraphFile file : files) {
                 VideoFile videoFile = new VideoFile();
-                videoFile.setFileName(file.getName());
-                videoFile.setFilePath(file.getDownloadUrl());
-                repository.save(videoFile);
+                  videoFile.setFileName(file.getName());
+                  videoFile.setFilePath(file.getWebUrl());
+                  videoFile.setItemID(file.getId());
+                  videoFile.setDriveID(driveId);
+                  repository.save(videoFile);
                 }
+
+                List<VideoFile> fileList =  fileList = repository.findAll();
+                fileList.stream().forEach(vi->{
+                CategorayDetails categorayDetails = new CategorayDetails();
+                String details= graphApiService.getCategoryFromFile(vi.getFileName(),vi.getDriveID(),vi.getItemID(),authRequest.getAccessToken());
+                //Check the return type and add set the values in category Details.
+                categoryDetailsRepository.save(categorayDetails);
+              });
 
                 response.put("files", files);
                 response.put("count", files.size());
@@ -242,5 +260,20 @@ public class GraphApiController {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
             }
         }
+
+ /* @GetMapping("/getCategory")
+  public ResponseEntity<String> getCategrories() {
+
+
+    String response = "";
+    List<VideoFile> fileList =  fileList = repository.findAll();
+    fileList.stream().forEach(vi->{
+      CategorayDetails categorayDetails = new CategorayDetails();
+      graphApiService.getCategoryFromFile(vi.getFileName(),vi.getDriveID(),vi.getItemID());
+      categoryDetailsRepository.save(categorayDetails);
+     });
+
+       return ResponseEntity.ok(response);
+  }*/
 
  }

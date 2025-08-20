@@ -1,14 +1,15 @@
 package com.example.graphapi.service;
 
-import com.example.graphapi.model.AuthRequest;
 import com.example.graphapi.model.GraphFile;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.IOException;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,6 +18,10 @@ public class GraphApiService {
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
+
+    @Value("${target-url}")
+    private String targetUrl;
+
 
     public GraphApiService() {
         this.restTemplate = new RestTemplate();
@@ -79,7 +84,7 @@ public class GraphApiService {
             );
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                return parseFilesFromResponse(response.getBody());
+                return parseFilesFromResponse(response.getBody(),null,null,null);
             }
 
             return new ArrayList<>();
@@ -103,7 +108,7 @@ public class GraphApiService {
             );
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                return parseFilesFromResponse(response.getBody());
+                return parseFilesFromResponse(response.getBody(),null,null,null);
             }
 
             return new ArrayList<>();
@@ -128,7 +133,7 @@ public class GraphApiService {
             );
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                return parseFilesFromResponse(response.getBody());
+                return parseFilesFromResponse(response.getBody(), accessToken, driveId, itemId);
             }
 
             return new ArrayList<>();
@@ -160,40 +165,50 @@ public class GraphApiService {
         }
     }
 
-    private List<GraphFile> parseFilesFromResponse(String responseBody) {
+    private List<GraphFile> parseFilesFromResponse(String responseBody,String accessToken, String driveId, String itemId) {
         List<GraphFile> files = new ArrayList<>();
         try {
+            List<String> fileDetails = new ArrayList<>();
             JsonNode root = objectMapper.readTree(responseBody);
             JsonNode valueNode = root.get("value");
 
             if (valueNode != null && valueNode.isArray()) {
-                for (JsonNode fileNode : valueNode) {
-                    GraphFile file = new GraphFile();
-                    file.setId(fileNode.get("id").asText());
-                    file.setName(fileNode.get("name").asText());
+              for (JsonNode fileNode : valueNode) {
 
-                    if (fileNode.has("webUrl")) {
-                        file.setWebUrl(fileNode.get("webUrl").asText());
-                    }
-
-                    if (fileNode.has("size")) {
-                        file.setSize(fileNode.get("size").asLong());
-                    }
-
-                    if (fileNode.has("createdDateTime")) {
-                        file.setCreatedDateTime(fileNode.get("createdDateTime").asText());
-                    }
-
-                    if (fileNode.has("lastModifiedDateTime")) {
-                        file.setLastModifiedDateTime(fileNode.get("lastModifiedDateTime").asText());
-                    }
-
-                    if (fileNode.has("@microsoft.graph.downloadUrl")) {
-                        file.setDownloadUrl(fileNode.get("@microsoft.graph.downloadUrl").asText());
-                    }
-
-                    files.add(file);
+                if (driveId != null && fileNode.get("folder")!= null && fileNode.get("folder").get("childCount").asInt() != 0) {
+                     //fileDetails.add(fileNode.get("id").asText());
+                     getDriveItemChildren(accessToken, driveId, fileNode.get("id").asText());
                 }
+                else {
+                  GraphFile file = new GraphFile();
+                  file.setId(fileNode.get("id").asText());
+                  file.setName(fileNode.get("name").asText());
+
+
+                  if (fileNode.has("webUrl")) {
+                    file.setWebUrl(fileNode.get("webUrl").asText());
+                  }
+
+                  if (fileNode.has("size")) {
+                    file.setSize(fileNode.get("size").asLong());
+                  }
+
+                  if (fileNode.has("createdDateTime")) {
+                    file.setCreatedDateTime(fileNode.get("createdDateTime").asText());
+                  }
+
+                  if (fileNode.has("lastModifiedDateTime")) {
+                    file.setLastModifiedDateTime(fileNode.get("lastModifiedDateTime").asText());
+                  }
+
+                  if (fileNode.has("@microsoft.graph.downloadUrl")) {
+                    file.setDownloadUrl(fileNode.get("@microsoft.graph.downloadUrl").asText());
+                  }
+
+                  files.add(file);
+                }
+
+              }
             }
         } catch (Exception e) {
             throw new RuntimeException("Failed to parse files response: " + e.getMessage());
@@ -201,4 +216,24 @@ public class GraphApiService {
 
         return files;
     }
+
+
+  public String getCategoryFromFile(String fileName, String driveID, String itemID, String accessToken) {
+    try {
+      HttpHeaders headers = new HttpHeaders();
+      headers.set("Authorization","Bearer " + accessToken);
+      LinkedMultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+      body.add("driveId", driveID);
+      body.add("itemId", itemID);
+      body.add("filename",fileName);
+
+      HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+
+      ResponseEntity<String> response = restTemplate.postForEntity(targetUrl, requestEntity, String.class,body);
+
+      return  response.getBody();
+    } catch (Exception e) {
+      throw new RuntimeException("Error forwarding file", e);
+    }
+  }
 }
