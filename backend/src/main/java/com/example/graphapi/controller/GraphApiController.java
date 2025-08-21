@@ -1,11 +1,13 @@
 
 package com.example.graphapi.controller;
 
-import com.example.graphapi.entity.CategorayDetails;
-import com.example.graphapi.entity.VideoFile;
+import com.example.graphapi.entity.TrainingDetails;
+import com.example.graphapi.entity.TrainingMaster;
+import com.example.graphapi.entity.VideoFiles;
 import com.example.graphapi.model.AuthRequest;
 import com.example.graphapi.model.GraphFile;
-import com.example.graphapi.repository.CategoryDetailsRepository;
+import com.example.graphapi.repository.TrainingDetailsRepository;
+import com.example.graphapi.repository.TrainingMasterRepository;
 import com.example.graphapi.repository.VideoFileRepository;
 import com.example.graphapi.service.GraphApiService;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -14,14 +16,11 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import org.nd4j.shade.j2objc.annotations.AutoreleasePool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,9 +33,14 @@ public class GraphApiController {
     private final GraphApiService graphApiService;
 
     @Autowired
-    private  CategoryDetailsRepository categoryDetailsRepository;
+    private TrainingMasterRepository trainingMasterRepository;
+
     @Autowired
-    private  VideoFileRepository repository;
+    private TrainingDetailsRepository trainingDetailsRepository;
+
+    @Autowired
+    private VideoFileRepository repository;
+
 
     public GraphApiController(GraphApiService graphApiService) {
         this.graphApiService = graphApiService;
@@ -231,23 +235,46 @@ public class GraphApiController {
                     response.put("error", "Invalid access token");
                     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
                 }
-
-                List<GraphFile> files = graphApiService.getDriveItemChildren(authRequest.getAccessToken(), driveId, "015ZUXCKD3HEDKB5ZQHFF2CAMHKFSS7WBU");
-              for (GraphFile file : files) {
-                VideoFile videoFile = new VideoFile();
-                  videoFile.setFileName(file.getName());
-                  videoFile.setFilePath(file.getWebUrl());
-                  videoFile.setItemID(file.getId());
-                  videoFile.setDriveID(driveId);
-                  repository.save(videoFile);
+               itemId = "015ZUXCKADVIAVTQVOGRCKAQ2IRZAYGZJ7";
+               List<GraphFile> files = graphApiService.getDriveItemChildren(authRequest.getAccessToken(), driveId, "015ZUXCKADVIAVTQVOGRCKAQ2IRZAYGZJ7");
+              if(itemId.contains("015ZUXCKD3HEDKB5ZQHFF2CAMHKFSS7WBU")) {
+                for (GraphFile file : files) {
+                  VideoFiles videoFiles = new VideoFiles();
+                  videoFiles.setFileName(file.getName());
+                  videoFiles.setFilePath(file.getWebUrl());
+                  videoFiles.setItemID(file.getId());
+                  videoFiles.setDriveID(driveId);
+                  videoFiles.setFolderName(file.getFolderName());
+                  videoFiles.setFileCount(files.size());
+                  videoFiles.setFolderid(file.getFolderId());
+                  repository.save(videoFiles);
                 }
+              }
 
-                List<VideoFile> fileList =  fileList = repository.findAll();
+              // Enter Values in Training_Master table
+                List<VideoFiles> fileList = repository.findAll();
                 fileList.stream().forEach(vi->{
-                CategorayDetails categorayDetails = new CategorayDetails();
-                  categorayDetails= graphApiService.getCategoryFromFile(vi.getFileName(),vi.getDriveID(),vi.getItemID(),authRequest.getAccessToken());
-                //Check the return type and add set the values in category Details.
-                categoryDetailsRepository.save(categorayDetails);
+                TrainingMaster trainingMaster = graphApiService.getCategoryFromFileForTrainingMaster(vi.getFileName(),vi.getDriveID(),vi.getItemID(),authRequest.getAccessToken());
+                trainingMaster.setTrainingID(vi.getFolderid());
+                trainingMaster.setTrainingName(vi.getFolderName());
+                trainingMaster.setCategory(trainingMaster.getCategory());
+                trainingMaster.setDuration(trainingMaster.getDuration());
+                trainingMaster.setTrainingTopic(trainingMaster.getTrainingTopic());
+                trainingMasterRepository.save(trainingMaster);
+              });
+
+              // Enter Values in Training_Details_Master table
+              List<VideoFiles> trainingDetailsList =  repository.findAll();
+              trainingDetailsList.stream().forEach(vi->{
+                TrainingDetails trainingDetails = graphApiService.getCategoryFromFileForTrainingDetails(vi.getFileName(),vi.getDriveID(),vi.getItemID(),authRequest.getAccessToken());
+                trainingDetails.setTrainingId(vi.getFolderid());
+                trainingDetails.setTrainingDetailId(vi.getItemID());
+                trainingDetails.setModuleName(vi.getFileName());
+                trainingDetails.setDuration(trainingDetails.getDuration());
+                trainingDetails.setInstructorName(trainingDetails.getInstructorName());
+                trainingDetails.setModulePath(vi.getFilePath());
+                trainingDetails.setModuleTopic(trainingDetails.getModuleTopic());
+                trainingDetailsRepository.save(trainingDetails);
               });
 
                 response.put("files", files);
@@ -260,20 +287,4 @@ public class GraphApiController {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
             }
         }
-
- /* @GetMapping("/getCategory")
-  public ResponseEntity<String> getCategrories() {
-
-
-    String response = "";
-    List<VideoFile> fileList =  fileList = repository.findAll();
-    fileList.stream().forEach(vi->{
-      CategorayDetails categorayDetails = new CategorayDetails();
-      graphApiService.getCategoryFromFile(vi.getFileName(),vi.getDriveID(),vi.getItemID());
-      categoryDetailsRepository.save(categorayDetails);
-     });
-
-       return ResponseEntity.ok(response);
-  }*/
-
  }

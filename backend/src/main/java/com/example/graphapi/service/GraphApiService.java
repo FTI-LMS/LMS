@@ -1,13 +1,16 @@
 package com.example.graphapi.service;
 
-import com.example.graphapi.entity.CategorayDetails;
+import com.example.graphapi.entity.TrainingDetails;
+import com.example.graphapi.entity.TrainingMaster;
+import com.example.graphapi.entity.VideoFiles;
 import com.example.graphapi.model.GraphFile;
+import com.example.graphapi.repository.VideoFileRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 
@@ -20,6 +23,9 @@ public class GraphApiService {
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
+
+    @Autowired
+    private VideoFileRepository repository;
 
     @Value("${target-url}")
     private String targetUrl;
@@ -170,7 +176,6 @@ public class GraphApiService {
     private List<GraphFile> parseFilesFromResponse(String responseBody,String accessToken, String driveId, String itemId) {
         List<GraphFile> files = new ArrayList<>();
         try {
-            List<String> fileDetails = new ArrayList<>();
             JsonNode root = objectMapper.readTree(responseBody);
             JsonNode valueNode = root.get("value");
 
@@ -178,8 +183,18 @@ public class GraphApiService {
               for (JsonNode fileNode : valueNode) {
 
                 if (driveId != null && fileNode.get("folder")!= null && fileNode.get("folder").get("childCount").asInt() != 0) {
-                     //fileDetails.add(fileNode.get("id").asText());
-                     getDriveItemChildren(accessToken, driveId, fileNode.get("id").asText());
+                  List<GraphFile> oneDrivefiles =  getDriveItemChildren(accessToken, driveId, fileNode.get("id").asText());
+                  for (GraphFile file : oneDrivefiles) {
+                    VideoFiles videoFiles = new VideoFiles();
+                    videoFiles.setFileName(file.getName());
+                    videoFiles.setFilePath(file.getWebUrl());
+                    videoFiles.setItemID(file.getId());
+                    videoFiles.setDriveID(driveId);
+                    videoFiles.setFolderName(fileNode.get("name").asText());
+                    videoFiles.setFileCount(fileNode.get("folder").get("childCount").asInt());
+                    videoFiles.setFolderid(fileNode.get("id").asText());
+                    repository.save(videoFiles);
+                  }
                 }
                 else {
                   GraphFile file = new GraphFile();
@@ -206,11 +221,16 @@ public class GraphApiService {
                   if (fileNode.has("@microsoft.graph.downloadUrl")) {
                     file.setDownloadUrl(fileNode.get("@microsoft.graph.downloadUrl").asText());
                   }
+                  if(fileNode.has("parentReference"))
+                  {
+                    file.setFolderName(fileNode.get("parentReference").get("name").asText());
+                    file.setFolderId(fileNode.get("parentReference").get("id").asText());
+                  }
 
                   files.add(file);
                 }
-
               }
+
             }
         } catch (Exception e) {
             throw new RuntimeException("Failed to parse files response: " + e.getMessage());
@@ -220,7 +240,7 @@ public class GraphApiService {
     }
 
 
-  public CategorayDetails getCategoryFromFile(String fileName, String driveID, String itemID, String accessToken) {
+  public TrainingMaster getCategoryFromFileForTrainingMaster(String fileName, String driveID, String itemID, String accessToken) {
     try {
       HttpHeaders headers = new HttpHeaders();
       headers.setBearerAuth(accessToken);
@@ -231,7 +251,26 @@ public class GraphApiService {
 
       HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(body, headers);
 
-      ResponseEntity<CategorayDetails> response = restTemplate.postForEntity(targetUrl, requestEntity, CategorayDetails.class);
+      ResponseEntity<TrainingMaster> response = restTemplate.postForEntity(targetUrl, requestEntity, TrainingMaster.class);
+
+      return  response.getBody();
+    } catch (Exception e) {
+      throw new RuntimeException("Error forwarding file", e);
+    }
+  }
+
+  public TrainingDetails getCategoryFromFileForTrainingDetails(String fileName, String driveID, String itemID, String accessToken) {
+    try {
+      HttpHeaders headers = new HttpHeaders();
+      headers.setBearerAuth(accessToken);
+      Map<String, String> body =  Map.of(
+        "driveId", driveID,
+        "itemId", itemID,
+        "filename",fileName);
+
+      HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(body, headers);
+
+      ResponseEntity<TrainingDetails> response = restTemplate.postForEntity(targetUrl, requestEntity, TrainingDetails.class);
 
       return  response.getBody();
     } catch (Exception e) {

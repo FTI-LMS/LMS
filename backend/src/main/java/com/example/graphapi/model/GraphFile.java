@@ -26,11 +26,15 @@ public class GraphFile {
     @Schema(description = "Direct download URL for the file")
     private String downloadUrl;
 
+    private String folderName;
+
+    private String folderId;
+
     // Constructors
     public GraphFile() {}
 
-    public GraphFile(String id, String name, String webUrl, long size, 
-                    String createdDateTime, String lastModifiedDateTime, String downloadUrl) {
+    public GraphFile(String id, String name, String webUrl, long size,
+                    String createdDateTime, String lastModifiedDateTime, String downloadUrl,String folderName,String folderId) {
         this.id = id;
         this.name = name;
         this.webUrl = webUrl;
@@ -38,6 +42,8 @@ public class GraphFile {
         this.createdDateTime = createdDateTime;
         this.lastModifiedDateTime = lastModifiedDateTime;
         this.downloadUrl = downloadUrl;
+        this.folderName  = folderName;
+        this.folderId    = folderId;
     }
 
     // Getters and Setters
@@ -96,4 +102,20 @@ public class GraphFile {
     public void setDownloadUrl(String downloadUrl) {
         this.downloadUrl = downloadUrl;
     }
+
+  public String getFolderName() {
+    return folderName;
+  }
+
+   public void setFolderName(String folderName) {
+    this.folderName = folderName;
+  }
+
+  public String getFolderId() {
+    return folderId;
+  }
+
+   public void setFolderId(String folderId) {
+    this.folderId = folderId;
+  }
 }
