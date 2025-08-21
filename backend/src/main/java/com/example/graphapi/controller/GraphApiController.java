@@ -245,7 +245,7 @@ public class GraphApiController {
                 List<VideoFile> fileList =  fileList = repository.findAll();
                 fileList.stream().forEach(vi->{
                 CategorayDetails categorayDetails = new CategorayDetails();
-                String details= graphApiService.getCategoryFromFile(vi.getFileName(),vi.getDriveID(),vi.getItemID(),authRequest.getAccessToken());
+                  categorayDetails= graphApiService.getCategoryFromFile(vi.getFileName(),vi.getDriveID(),vi.getItemID(),authRequest.getAccessToken());
                 //Check the return type and add set the values in category Details.
                 categoryDetailsRepository.save(categorayDetails);
               });

@@ -1,5 +1,6 @@
 package com.example.graphapi.service;
 
+import com.example.graphapi.entity.CategorayDetails;
 import com.example.graphapi.model.GraphFile;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,6 +13,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class GraphApiService {
@@ -218,18 +220,18 @@ public class GraphApiService {
     }
 
 
-  public String getCategoryFromFile(String fileName, String driveID, String itemID, String accessToken) {
+  public CategorayDetails getCategoryFromFile(String fileName, String driveID, String itemID, String accessToken) {
     try {
       HttpHeaders headers = new HttpHeaders();
-      headers.set("Authorization","Bearer " + accessToken);
-      LinkedMultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-      body.add("driveId", driveID);
-      body.add("itemId", itemID);
-      body.add("filename",fileName);
+      headers.setBearerAuth(accessToken);
+      Map<String, String> body =  Map.of(
+      "driveId", driveID,
+      "itemId", itemID,
+      "filename",fileName);
 
-      HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+      HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(body, headers);
 
-      ResponseEntity<String> response = restTemplate.postForEntity(targetUrl, requestEntity, String.class,body);
+      ResponseEntity<CategorayDetails> response = restTemplate.postForEntity(targetUrl, requestEntity, CategorayDetails.class);
 
       return  response.getBody();
     } catch (Exception e) {
