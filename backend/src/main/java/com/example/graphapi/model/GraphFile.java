@@ -5,117 +5,127 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = "Represents a file from Microsoft OneDrive")
 public class GraphFile {
 
-    @Schema(description = "Unique identifier of the file", example = "01BYE5RZ6QN3ZWBTUFOFD3GSPGOHDJD36K")
-    private String id;
+  @Schema(description = "Unique identifier of the file", example = "01BYE5RZ6QN3ZWBTUFOFD3GSPGOHDJD36K")
+  private String id;
 
-    @Schema(description = "Name of the file", example = "document.pdf")
-    private String name;
+  @Schema(description = "Name of the file", example = "document.pdf")
+  private String name;
 
-    @Schema(description = "Web URL to access the file", example = "https://onedrive.live.com/...")
-    private String webUrl;
+  @Schema(description = "Web URL to access the file", example = "https://onedrive.live.com/...")
+  private String webUrl;
 
-    @Schema(description = "Size of the file in bytes", example = "1048576")
-    private Long size;
+  @Schema(description = "Size of the file in bytes", example = "1048576")
+  private Long size;
 
-    @Schema(description = "File creation date and time", example = "2023-01-01T12:00:00Z")
-    private String createdDateTime;
+  @Schema(description = "File creation date and time", example = "2023-01-01T12:00:00Z")
+  private String createdDateTime;
 
-    @Schema(description = "Last modified date and time", example = "2023-01-02T14:30:00Z")
-    private String lastModifiedDateTime;
+  @Schema(description = "Last modified date and time", example = "2023-01-02T14:30:00Z")
+  private String lastModifiedDateTime;
 
-    @Schema(description = "Direct download URL for the file")
-    private String downloadUrl;
+  @Schema(description = "Direct download URL for the file")
+  private String downloadUrl;
 
-    private String folderName;
+  private String folderName;
 
-    private String folderId;
+  private String folderId;
 
-    // Constructors
-    public GraphFile() {}
+  private boolean isFolder;
 
-    public GraphFile(String id, String name, String webUrl, long size,
-                    String createdDateTime, String lastModifiedDateTime, String downloadUrl,String folderName,String folderId) {
-        this.id = id;
-        this.name = name;
-        this.webUrl = webUrl;
-        this.size = size;
-        this.createdDateTime = createdDateTime;
-        this.lastModifiedDateTime = lastModifiedDateTime;
-        this.downloadUrl = downloadUrl;
-        this.folderName  = folderName;
-        this.folderId    = folderId;
-    }
+  // Constructors
+  public GraphFile() {}
 
-    // Getters and Setters
-    public String getId() {
-        return id;
-    }
+  public GraphFile(String id, String name, String webUrl, long size,
+                   String createdDateTime, String lastModifiedDateTime, String downloadUrl,String folderName,String folderId) {
+    this.id = id;
+    this.name = name;
+    this.webUrl = webUrl;
+    this.size = size;
+    this.createdDateTime = createdDateTime;
+    this.lastModifiedDateTime = lastModifiedDateTime;
+    this.downloadUrl = downloadUrl;
+    this.folderName  = folderName;
+    this.folderId    = folderId;
+  }
 
-    public void setId(String id) {
-        this.id = id;
-    }
+  // Getters and Setters
+  public String getId() {
+    return id;
+  }
 
-    public String getName() {
-        return name;
-    }
+  public void setId(String id) {
+    this.id = id;
+  }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public String getWebUrl() {
-        return webUrl;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    public void setWebUrl(String webUrl) {
-        this.webUrl = webUrl;
-    }
+  public String getWebUrl() {
+    return webUrl;
+  }
 
-    public long getSize() {
-        return size;
-    }
+  public void setWebUrl(String webUrl) {
+    this.webUrl = webUrl;
+  }
 
-    public void setSize(long size) {
-        this.size = size;
-    }
+  public long getSize() {
+    return size;
+  }
 
-    public String getCreatedDateTime() {
-        return createdDateTime;
-    }
+  public void setSize(long size) {
+    this.size = size;
+  }
 
-    public void setCreatedDateTime(String createdDateTime) {
-        this.createdDateTime = createdDateTime;
-    }
+  public String getCreatedDateTime() {
+    return createdDateTime;
+  }
 
-    public String getLastModifiedDateTime() {
-        return lastModifiedDateTime;
-    }
+  public void setCreatedDateTime(String createdDateTime) {
+    this.createdDateTime = createdDateTime;
+  }
 
-    public void setLastModifiedDateTime(String lastModifiedDateTime) {
-        this.lastModifiedDateTime = lastModifiedDateTime;
-    }
+  public String getLastModifiedDateTime() {
+    return lastModifiedDateTime;
+  }
 
-    public String getDownloadUrl() {
-        return downloadUrl;
-    }
+  public void setLastModifiedDateTime(String lastModifiedDateTime) {
+    this.lastModifiedDateTime = lastModifiedDateTime;
+  }
 
-    public void setDownloadUrl(String downloadUrl) {
-        this.downloadUrl = downloadUrl;
-    }
+  public String getDownloadUrl() {
+    return downloadUrl;
+  }
+
+  public void setDownloadUrl(String downloadUrl) {
+    this.downloadUrl = downloadUrl;
+  }
 
   public String getFolderName() {
     return folderName;
   }
 
-   public void setFolderName(String folderName) {
+  public void setFolderName(String folderName) {
     this.folderName = folderName;
+  }
+
+  public boolean getIsFolder() {
+    return isFolder;
+  }
+
+  public void setIsFolder(boolean isFolder) {
+    this.isFolder = isFolder;
   }
 
   public String getFolderId() {
     return folderId;
   }
 
-   public void setFolderId(String folderId) {
+  public void setFolderId(String folderId) {
     this.folderId = folderId;
   }
 }

@@ -1,89 +1,112 @@
 package com.example.graphapi.entity;
 
+
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "Training_Details")
 public class TrainingDetails {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Column(name="Training_ID")
-    private String trainingId;
+  @Column(name="Training_ID")
+  private String trainingId;
 
-    @Column(name=" Training_Detail_ID")
-    private String  trainingDetailId;
+  @Column(name=" Training_Detail_ID")
+  private String  trainingDetailId;
 
-    @Column(name=" Module_Name")
-    private String  moduleName;
+  @Column(name=" Module_Name")
+  private String  moduleName;
 
-    @Column(name=" Module_Topic")
-    private String  moduleTopic;
+  @Column(name=" Module_Topic")
+  private String  moduleTopic;
 
-    @Column(name=" Module_Duration")
-    private Double duration;
+  @Column(name=" Module_Duration")
+  private Double duration;
 
-    @Column(name=" Module_Path")
-    private String modulePath;
+  @Column(name=" Module_Path")
+  private String modulePath;
 
-    @Column(name=" Trainer_Name")
-    private String instructorName;
+  @Column(name=" Trainer_Name")
+  private String instructorName;
 
-    public String getTrainingId() {
-      return trainingId;
-    }
+  @Column(name=" Category")
+  private String category;
 
-    public void setTrainingId(String trainingId) {
-      this.trainingId = trainingId;
-    }
+  @Column(name=" Training topic")
+  private String trainingTopic;
 
-    public String getTrainingDetailId() {
-      return trainingDetailId;
-    }
+  public String getTrainingId() {
+    return trainingId;
+  }
 
-    public void setTrainingDetailId(String trainingDetailId) {
-      this.trainingDetailId = trainingDetailId;
-    }
+  public void setTrainingId(String trainingId) {
+    this.trainingId = trainingId;
+  }
 
-    public String getModuleName() {
-      return moduleName;
-    }
+  public String getTrainingDetailId() {
+    return trainingDetailId;
+  }
 
-    public void setModuleName(String moduleName) {
-      this.moduleName = moduleName;
-    }
+  public void setTrainingDetailId(String trainingDetailId) {
+    this.trainingDetailId = trainingDetailId;
+  }
 
-    public String getModuleTopic() {
-      return moduleTopic;
-    }
+  public String getModuleName() {
+    return moduleName;
+  }
 
-    public void setModuleTopic(String moduleTopic) {
-      this.moduleTopic = moduleTopic;
-    }
+  public void setModuleName(String moduleName) {
+    this.moduleName = moduleName;
+  }
 
-    public Double getDuration() {
-      return duration;
-    }
+  public String getModuleTopic() {
+    return moduleTopic;
+  }
 
-    public void setDuration(Double duration) {
-      this.duration = duration;
-    }
+  public void setModuleTopic(String moduleTopic) {
+    this.moduleTopic = moduleTopic;
+  }
 
-    public String getModulePath() {
-      return modulePath;
-    }
+  public Double getDuration() {
+    return duration;
+  }
 
-    public void setModulePath(String modulePath) {
-      this.modulePath = modulePath;
-    }
+  public void setDuration(Double duration) {
+    this.duration = duration;
+  }
 
-    public String getInstructorName() {
-      return instructorName;
-    }
+  public String getModulePath() {
+    return modulePath;
+  }
 
-    public void setInstructorName(String instructorName) {
-      this.instructorName = instructorName;
-    }
+  public void setModulePath(String modulePath) {
+    this.modulePath = modulePath;
+  }
+
+  public String getInstructorName() {
+    return instructorName;
+  }
+
+  public void setInstructorName(String instructorName) {
+    this.instructorName = instructorName;
+  }
+
+  public String getCategory() {
+    return category;
+  }
+
+  public void setCategory(String category) {
+    this.category = category;
+  }
+
+  public void setTrainingTopic(String trainingTopic) {
+    this.trainingTopic = trainingTopic;
+  }
+
+  public String getTrainingTopic() {
+    return trainingTopic;
+  }
 }
